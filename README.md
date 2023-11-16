@@ -72,7 +72,7 @@ for i in `cat lst`; do sbatch -J ${sm} -p normal -N 1 -c 32 -o log/${sm}_cleanin
 ## 02.Mapping
 
 开始之前，需要准备样本list文件，三列分别是：样本名，fq1的绝对路径，fq2的绝对路径，以tab分割。
-**不要所有样本的bam放在同一个文件夹下面，为每个样本创建目录：**
+**不要所有样本的bam放在同一个文件夹下面，要为每个样本创建单独的目录：**
 
 ```shell
 cd 02.mapping
@@ -116,6 +116,13 @@ cat sample_lst | while read sm fq1 fq2; do sbatch -J ${sm} -p normal -N 1 -c 32 
 ### 01.HaplotypeCaller
 
 开始之前，需要提前准备包含样本名和bam文件绝对路径的list文件，一共2列，以tab分割。
+**不要所有样本的gvcf放在同一个文件夹下面，要为每个样本创建单独的目录：**
+
+```shell
+cd 03.gvcf
+for i in `cut -f1 bam_lst`; do mkdir ${i}; done
+cd ..
+```
 
 下面代码框内容保存为`03.HaplotypeCaller.sh`:
 ```shell
