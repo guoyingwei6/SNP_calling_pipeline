@@ -30,17 +30,17 @@ mkdir log 00.reference 01.fastq 02.bam 03.gvcf 04.combined_gvcf 05.combined_vcf 
 
 1. Generate the BWA index using BWA. This will create the “.fasta.amb”, “.fasta.ann”, “.fasta.bwt”, “.fasta.pac” and “.fasta.sa” files.
 ```shell
-bwa index GCF_002742125.1_Oar_rambouillet_v1.0_genomic.rename.AddY.fna
+bwa index GCF_002263795.1_ARS-UCD1.2_genomic.addY.rename.fna
 ```
  
 2. Generate the FASTA file index using samtools. This will create the “.fasta.fai” file.
 ```shell
-samtools faidx GCF_002742125.1_Oar_rambouillet_v1.0_genomic.rename.AddY.fna
+samtools faidx GCF_002263795.1_ARS-UCD1.2_genomic.addY.rename.fna
 ```
  
 3. Generate the sequence dictionary using Picard. This will create the “.dict” file.
 ```shell
-java -jar picard_2.18.17.jar CreateSequenceDictionary R=GCF_002742125.1_Oar_rambouillet_v1.0_genomic.rename.AddY.fna O=GCF_002742125.1_Oar_rambouillet_v1.0_genomic.rename.AddY.dict
+java -jar picard_2.18.17.jar CreateSequenceDictionary R=GCF_002263795.1_ARS-UCD1.2_genomic.addY.rename.fna O=GCF_002263795.1_ARS-UCD1.2_genomic.addY.rename.dict
 ```
 
 
