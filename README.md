@@ -139,9 +139,9 @@ cat bam_lst | while read sm bam; do for chr in {1..29} X Y MT; do sbatch -J ${sm
 
 
 ### 02.CombineGVCFs and GenotypeGVCFs
-下面代码框内容保存为`0405.Combine_Genotype_GVCFs.sh`:
+下面代码框内容保存为`04.05.Combine_Genotype_GVCFs.sh`:
 ```shell
-# 0405.Combine_Genotype_GVCFs.sh
+# 04.05.Combine_Genotype_GVCFs.sh
 export chr=${1}
 export ref=/path/00.reference/GCF_002263795.1_ARS-UCD1.2_genomic.addY.rename.fna
 
@@ -186,7 +186,7 @@ bcftools index 06.filtered_vcf/chr${chr}.filtered.vcf.gz
 将全部个体的每天染色体合并在一起，生成全部样本全基因组的vcf：
 下面代码框内容保存为`07.concatenate.sh`:
 
-```
+```shell
 # vcf lst
 find 06.filtered_vcf/ -name chr*.filtered.vcf.gz | sort -V > 07.concatenate/vcf_lst
 
