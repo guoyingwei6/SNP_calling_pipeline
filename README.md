@@ -160,6 +160,7 @@ gatk CombineGVCFs -R ${ref} -V 04.combined_gvcf/chr${chr}.gvcf.lst -O 04.combine
 gatk GenotypeGVCFs -R ${ref} -V 04.combined_gvcf/chr${chr}.gvcf.gz -O 05.combined_vcf/chr${chr}.vcf.gz
 ```
 
+按照上面的示例，每条染色体提交一次任务：
 ```
 for i in {1..29} X Y MT; do 
 ```
@@ -190,7 +191,7 @@ bcftools index 06.filtered_vcf/chr${chr}.filtered.vcf.gz
 
 ## 07.concatenate
 
-将全部个体的每天染色体合并在一起，生成全部样本全基因组的vcf：
+将全部个体的每条染色体合并在一起，生成全部样本全基因组的vcf：
 下面代码框内容保存为`07.concatenate.sh`:
 
 ```shell
