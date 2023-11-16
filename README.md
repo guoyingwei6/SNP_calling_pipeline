@@ -44,7 +44,7 @@ java -jar picard_2.18.17.jar CreateSequenceDictionary R=GCF_002263795.1_ARS-UCD1
 ```
 
 
-> **NOTE：开始之前，检查所有的样本的fastq文件，是否都是1对，如果某些样本存在多个pane导致下机数据不止1对fastq文件，直接把该样本所有的fastq1合并在一起，所有的fastq2合并在一起，再进行接下来的操作。** 
+> **NOTE：开始之前，检查所有的样本的fastq文件，是否都是1对，如果某些样本存在多个lane导致下机数据不止1对fastq文件，直接把该样本所有的fastq1合并在一起，所有的fastq2合并在一起，再进行接下来的操作。** 
 
 
 
