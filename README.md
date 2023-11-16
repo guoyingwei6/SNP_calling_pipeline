@@ -9,9 +9,9 @@
 
 ### 01.Software Version
 - bwa==0.7.17
+- gatk==4.4.0.0
 - samtools==1.18
 - bcftools==1.18
-- gatk==4.4.0.0
 - fastp==0.23.4
 
 ### 02.Creating Directories
