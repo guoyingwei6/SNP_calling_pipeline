@@ -4,24 +4,24 @@
 
 ### 00.Notice
 - **保留所有的脚本、提交任务的命令、每个步骤的日志文件。**
-- **采用下文指定的流程、软件版本和参数。**
+- **采用下文指定的流程、软件版本和参数，每个步骤的输出文件名后缀必须同示例保持一致。**
 - **确保软件所在目录已存在于PTAH变量中，或自行添加绝对路径。**
 
 ### 01.Software Version
 - bwa==0.7.17
 - samtools==1.18
-- picard==3.1.1
+- bcftools==1.18
 - gatk==4.4.0.0
 - fastp==0.23.4
 
 ### 02.Creating Directories
 
 ```shell
-mkdir log 00.reference 01.fastq 02.mapping 03.calling
+mkdir log 00.reference 01.fastq 02.bam 03.gvcf 04.combined_gvcf 05.combined_vcf 06.filtered_vcf 07.concatenate
 ```
 
 ### 03.Reference Genome
-> **请直接下载百度网盘链接中提供的参考基因组（UCD1.2加一条Y染色体），保存至目录`00.reference`中，并运行`md5sum -c md5.txt`查看文件是否下载完整。**  
+> **请直接下载百度网盘链接中提供的参考基因组（UCD1.2加一条Y染色体）及md5文件，并保存至目录`00.reference`中，运行`md5sum -c md5.txt`查看文件是否下载完整。**  
 >
 > 参考基因组网盘链接: https://pan.baidu.com/s/1mvMld7s4PHXNZOtgJvS7qA?pwd=jazm 
 > 
@@ -51,9 +51,10 @@ java -jar picard_2.18.17.jar CreateSequenceDictionary R=GCF_002742125.1_Oar_ramb
 ## 01.Quality Control
 
 采用`fastp`进行质控，默认参数即可，保留`report`：
-下面代码框内容保存为01.cleaning.sh:
+下面代码框内容保存为`01.cleaning.sh`:
 
 ```shell
+# 01.cleaning.sh
 ${sm}=$1
 fastp -i ${sm}_1.fq.gz -I ${sm}_2.fq.gz -o ${sm}_1.clean.fq.gz -O ${sm}_2.clean.fq.gz -h ${sm}.html -j ${sm}.json -w 8
 ```
@@ -61,7 +62,7 @@ fastp -i ${sm}_1.fq.gz -I ${sm}_2.fq.gz -o ${sm}_1.clean.fq.gz -O ${sm}_2.clean.
 - 无论raw.fq.gz前缀是什么格式，clean.fq.gz统一命名为sample_1.clean.fq.gz及sample_1.clean.fq.gz
 - -w 线程数自行调节
 
-通过以下命令将上面脚本提交任务至计算节点（以slurm为例），每个样本一个任务：
+通过以下命令将上面脚本提交任务至计算节点（以slurm为例），每个样本一个任务（合理调整线程和内存）。：
 
 ```
 # 所有样本名保存至文件lst中，每行1个
@@ -79,29 +80,30 @@ for i in `cut -f1 sample_lst`; do mkdir ${i}; done
 cd ..
 ```
 
-下面代码框内容保存为02.mapping.sh:
+下面代码框内容保存为`02.mapping.sh`:
 
 ```shell
+# 02.mapping.sh
 # define variable
 export sm=${1} #sample name，作为该脚本外部的第1个参数
 export fq1=${2} #fq1的绝对路径，作为该脚本外部的第2个参数
 export fq2=${3} #fq2的绝对路径，作为该脚本外部的第3个参数
 export thread=8 #线程数，根据集群情况自行修改
-export ref=Oar4.0_add_CPY.fa  #参考基因组,记得改成绝对路径
+export ref=/path/00.reference/GCF_002263795.1_ARS-UCD1.2_genomic.addY.rename.fna  #参考基因组,记得改成绝对路径
  
 # mapping and sorting
-bwa mem -t ${thread} -R '@RG\tID:'${sm}'\tLB:'${sm}'\tPL:ILLUMINA\tSM:' ${sm} ${ref} ${fq1} ${fq2} | samtools sort -o 02.mapping/${sm}/${sm}.sorted.bam - -@ ${thread}
+bwa mem -t ${thread} -R '@RG\tID:'${sm}'\tLB:'${sm}'\tPL:ILLUMINA\tSM:' ${sm} ${ref} ${fq1} ${fq2} | samtools sort -o 02.bam/${sm}/${sm}.sorted.bam - -@ ${thread}
 
 # dedup
-gatk MarkDuplicates --spark-runner LOCAL -I 02.mapping/${sm}/${sm}.sorted.bam -O 02.mapping/${sm}/${sm}.dedup.bam -M 02.mapping/${sm}/${sm}.dup.metrics --CREATE_INDEX true --VALIDATION_STRINGENCY SILENT --REMOVE_DUPLICATES true
+gatk MarkDuplicates --spark-runner LOCAL -I 02.bam/${sm}/${sm}.sorted.bam -O 02.bam/${sm}/${sm}.dedup.bam -M 02.bam/${sm}/${sm}.dup.metrics --CREATE_INDEX true --VALIDATION_STRINGENCY SILENT --REMOVE_DUPLICATES true
 
 #stat
-samtools flagstat 02.mapping/${sm}/${sm}.dedup.bam > 02.mapping/${sm}/${sm}.dedup.flagstat
+samtools flagstat 02.bam/${sm}/${sm}.dedup.bam > 02.bam/${sm}/${sm}.dedup.flagstat
 
-samtools coverage 02.mapping/${sm}/${sm}.dedup.bam > 02.mapping/${sm}/${sm}.dedup.coverage
+samtools coverage 02.bam/${sm}/${sm}.dedup.bam > 02.bam/${sm}/${sm}.dedup.coverage
 
 ```
-通过以下命令将上面脚本提交任务至计算节点（以slurm为例），每个样本一个任务：
+通过以下命令将上面脚本提交任务至计算节点（以slurm为例），每个样本一个任务（合理调整线程和内存）：
 
 ```
 cat sample_lst | while read sm fq1 fq2; do sbatch -J ${sm} -p normal -N 1 -c 32 -o log/${sm}_mapping.o -e log/${sm}_mapping.e 02.mapping.sh ${sm} ${fq1} ${fq2}; done
@@ -110,4 +112,88 @@ cat sample_lst | while read sm fq1 fq2; do sbatch -J ${sm} -p normal -N 1 -c 32 
 
 
 ## 03.Calling
+
+### 01.HaplotypeCaller
+
+开始之前，需要提前准备包含样本名和bam文件绝对路径的list文件，一共2列，以tab分割。
+
+下面代码框内容保存为`03.HaplotypeCaller.sh`:
+```shell
+# 03.HaplotypeCaller.sh
+# HaplotypeCaller
+export sm=${1}
+export bam=${2}
+export chr=${3}
+export ref=/path/00.reference/GCF_002263795.1_ARS-UCD1.2_genomic.addY.rename.fna
+ 
+gatk HaplotypeCaller -R ${ref} -I ${bam} -L ${chr} -ERC GVCF -O 03.gvcf/${sm}/${sm}.chr${chr}.gvcf.gz
+```
+
+这一步要求分染色体进行calling，**需要29条常染色体加上X Y MT共32条染色体**，每个个体每条染色体分别递交任务，注意嵌套循环：
+```
+cat bam_lst | while read sm bam; do for chr in {1..29} X Y MT; do sbatch -J ${sm} -p normal -N 1 -c 32 -o log/${sm}_${chr}_calling.o -e log/${sm}_${chr}_calling.e 03.HaplotypeCaller.sh ${sm} ${bam} ${chr}; done; done
+```
+
+
+---
+
+
+### 02.CombineGVCFs and GenotypeGVCFs
+下面代码框内容保存为`0405.Combine_Genotype_GVCFs.sh`:
+```shell
+# 0405.Combine_Genotype_GVCFs.sh
+export chr=${1}
+export ref=/path/00.reference/GCF_002263795.1_ARS-UCD1.2_genomic.addY.rename.fna
+
+# CombineGVCFs 
+find 03.gvcf/ -name "*.chr${chr}.gvcf.gz" > 04.combined_gvcf/chr${chr}.gvcf.lst
+gatk CombineGVCFs -R ${ref} -V 04.combined_gvcf/chr${chr}.gvcf.lst -O 04.combined_gvcf/chr${chr}.gvcf.gz
+ 
+# GenotypeGVCFs
+gatk GenotypeGVCFs -R ${ref} -V 04.combined_gvcf/chr${chr}.gvcf.gz -O 05.combined_vcf/chr${chr}.vcf.gz
+```
+
+```
+for i in {1..29} X Y MT; do 
+```
+
+
+## 06.filtering
+下面代码框内容保存为`06.filtering.sh`:
+```shell
+# 06.filtering.sh
+
+export chr=${1}
+
+# HardFilter
+bcftools view \
+-v snps \
+-e 'QD < 2.0 || QUAL < 30.0 || SOR > 3.0 || FS > 60.0 || MQ < 40.0 || MQRankSum < -12.5 || ReadPosRankSum < -8.0' \
+-m2 -M2 \
+05.combined_vcf/chr${chr}.vcf.gz \
+-Oz \
+-o 06.filtered_vcf/chr${chr}.filter.vcf.gz
+
+# think over the threshold
+bcftools view -i 'F_MISSING < 0.1 & MAF > 0.05' 06.filtered_vcf/chr${chr}.filter.vcf.gz -Oz -o 06.filtered_vcf/chr${chr}.filtered.vcf.gz
+
+# index
+bcftools index 06.filtered_vcf/chr${chr}.filtered.vcf.gz
+```
+
+## 07.concatenate
+
+将全部个体的每天染色体合并在一起，生成全部样本全基因组的vcf：
+下面代码框内容保存为`07.concatenate.sh`:
+
+```
+# vcf lst
+find 06.filtered_vcf/ -name chr*.filtered.vcf.gz | sort -V > 07.concatenate/vcf_lst
+
+# concat
+bcftools concat -f 07.concatenate/vcf_lst -Oz -o 07.concatenate/all_samples.all_chr.vcf.gz
+
+# index 
+bcftools index 07.concatenate/all_samples.all_chr.vcf.gz
+```
 
