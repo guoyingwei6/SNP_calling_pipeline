@@ -59,7 +59,7 @@ ${sm}=$1
 fastp -i ${sm}_1.fq.gz -I ${sm}_2.fq.gz -o ${sm}_1.clean.fq.gz -O ${sm}_2.clean.fq.gz -h ${sm}.html -j ${sm}.json -w 8
 ```
 
-- 无论raw.fq.gz前缀是什么格式，clean.fq.gz统一命名为sample_1.clean.fq.gz及sample_1.clean.fq.gz
+- 无论raw.fq.gz前缀是什么格式，clean.fq.gz统一命名为sample_1.clean.fq.gz及sample_2.clean.fq.gz
 - -w 线程数自行调节
 
 通过以下命令将上面脚本提交任务至计算节点（以slurm为例），每个样本一个任务（合理调整线程和内存）。：
