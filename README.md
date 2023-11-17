@@ -169,7 +169,7 @@ for i in {1..29} X Y MT; do
 ```
 
 
-### 06.filtering
+### 03.filtering
 下面代码框内容保存为`06.filtering.sh`:
 ```shell
 # 06.filtering.sh
@@ -192,7 +192,7 @@ bcftools view -i 'F_MISSING < 0.1 & MAF > 0.05' 06.filtered_vcf/chr${chr}.filter
 bcftools index 06.filtered_vcf/chr${chr}.filtered.vcf.gz
 ```
 
-### 07.concatenate
+### 04.concatenate
 
 将全部个体的每条染色体合并在一起，生成全部样本全基因组的vcf：
 下面代码框内容保存为`07.concatenate.sh`:
