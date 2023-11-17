@@ -13,17 +13,6 @@ import time
 import re
 import gzip
 
-'''
-name file format:
-1       NC_019458.2
-2       NC_019459.2
-...
-...
-MT      NC_019464.2
-X       NC_019468.2
-Y       NC_019469.2
-'''
-
 
 def GetCommandLine():
     CommandLine='python3 {0}'.format(' '.join(sys.argv))
@@ -56,6 +45,16 @@ def LoadNameDict():
         Dict[line[1]] = line[0]
     return Dict
 def ChangeChromosomeNameInFastaOrGff():
+    '''
+    name file format:
+    1       NC_019458.2
+    2       NC_019459.2
+    ...
+    ...
+    MT      NC_019464.2
+    X       NC_019468.2
+    Y       NC_019469.2
+    '''
     NameDict = LoadNameDict()
     GzFile = False
     if args.GzFile:
