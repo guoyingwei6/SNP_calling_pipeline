@@ -25,6 +25,12 @@ mkdir log 00.reference 01.fastq 02.bam 03.gvcf 04.combined_gvcf 05.combined_vcf 
 >
 > 参考基因组网盘链接: https://pan.baidu.com/s/1mvMld7s4PHXNZOtgJvS7qA?pwd=jazm 
 > 
+0. 以NCBI上*Bos taurus*最新的ARS-UCD2.0版本基因组为参考基因组，并保存至目录`00.reference`中,对染色体进行重命名（常染色体，X，T，MT重命名，scafolds不用管），python脚本在scripts目录下：
+
+```
+wget https://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/002/263/795/GCF_002263795.3_ARS-UCD2.0/GCF_002263795.3_ARS-UCD2.0_genomic.fna.gz
+python3 scripts/ChangeChromosomeNameInFastaOrGff.py -i GCF_002263795.3_ARS-UCD2.0_genomic.fna.gz --fa -g -N chr_name -o GCF_002263795.3_ARS-UCD2.0_genomic.rename.fna
+```
 
 通过以下步骤为参考基因组建立索引：
 
